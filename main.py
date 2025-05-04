@@ -33,7 +33,7 @@ async def publish_to_rabbitmq(message_body: dict):
         async with connection:
             channel = await connection.channel()
             queue = await channel.declare_queue('delete_file', durable=True)
-            message = Message(body=json.dumps(message_body).encode())
+            message =  Message(body=message_body.encode())
             await channel.default_exchange.publish(message, routing_key=queue.name)
     except Exception as e:
         raise Exception(f"RabbitMQ publish error: {e}")
