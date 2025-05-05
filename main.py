@@ -57,6 +57,7 @@ async def delete_file_from_bucket(
 @app.post("/v1/events/documents/sendFile")
 async def send_document_to_email(
     client_id: str = Form(...),
+    client_name: str = Form(...),
     file_name: str = Form(...),
     to_email: str = Form(...)
 ):
@@ -65,6 +66,7 @@ async def send_document_to_email(
         message = {
             "action": "sendFile",
             "to_email": to_email,
+            "client_name": client_name,
             "file_name": f"{client_id}/{file_name}"
         }
 
