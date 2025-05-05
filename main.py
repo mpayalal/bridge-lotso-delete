@@ -36,11 +36,15 @@ async def publish_to_rabbitmq(queue: str, message_body):
 @app.post("/v1/events/documents/deleteFile")
 async def delete_file_from_bucket(
     client_id: str = Form(...),
+    client_email: str = Form(...),
     file_name: str = Form(...)
 ):
     try:
         # Mensaje para RabbitMQ
-        message = f"{client_id}/{file_name}"
+        message = {
+            "client_email": client_email,
+            "file_name": f"{client_id}/{file_name}"
+        }
 
         # Mandamos mensaje
         await publish_to_rabbitmq('delete_file', message)
