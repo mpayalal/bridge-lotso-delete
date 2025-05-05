@@ -59,6 +59,7 @@ async def send_document_to_email(
     try:
         # Mensaje para RabbitMQ
         message = {
+            "action": "sendFile",
             "to_email": to_email,
             "file_name": f"{client_id}/{file_name}"
         }
