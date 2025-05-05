@@ -38,7 +38,7 @@ async def publish_to_rabbitmq(message_body: dict):
     except Exception as e:
         raise Exception(f"RabbitMQ publish error: {e}")
 
-@app.post("/deleteFile")
+@app.post("/v1/documents/deleteFile")
 async def delete_file_from_bucket(
     client_id: str = Form(...),
     file_name: str = Form(...)
