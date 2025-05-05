@@ -9,8 +9,8 @@ env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: marcianos-cluster   # cluster name
   GKE_ZONE: us-central1-a  # cluster zone
-  IMAGE_NAME: bridge-lotso-delete
-  DEPLOYMENT_NAME: bridge-lotso-delete # deployment name
+  IMAGE_NAME: bridge-lotso-documents
+  DEPLOYMENT_NAME: bridge-lotso-documents # deployment name
   NAMESPACE: documents
 
 jobs:

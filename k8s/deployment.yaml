@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bridge-lotso-delete
+  name: bridge-lotso-documents
   labels:
-    app: bridge-lotso-delete
+    app: bridge-lotso-documents
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: bridge-lotso-delete
+      app: bridge-lotso-documents
   template:
     metadata:
       labels:
-        app: bridge-lotso-delete
+        app: bridge-lotso-documents
     spec:
       containers:
-        - name: bridge-lotso-delete
-          image: mpayalal/bridge-lotso-delete:latest
+        - name: bridge-lotso-documents
+          image: mpayalal/bridge-lotso-documents:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
