@@ -92,13 +92,15 @@ async def authenticate_file(
     client_id: str = Form(...),
     url_document: str = Form(...),
     file_name: str = Form(...),
+    client_email: str = Form(...)
 ):
     try:
         # Mensaje para RabbitMQ
         message = {
             "client_id": client_id,
             "url_document": url_document,
-            "file_name": file_name
+            "file_name": file_name,
+            "client_email": client_email
         }
 
         # Mandamos mensaje
