@@ -86,3 +86,25 @@ async def send_document_to_email(
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+@app.put("/v1/events/documents/authenticateFile")
+async def authenticate_file(
+    client_id: str = Form(...),
+    url_document: str = Form(...),
+    file_name: str = Form(...),
+):
+    try:
+        # Mensaje para RabbitMQ
+        message = {
+            "client_id": client_id,
+            "url_document": url_document,
+            "file_name": file_name
+        }
+
+        # Mandamos mensaje
+        await publish_to_rabbitmq('authenticate_file', message)
+
+        return {"message": f"El archivo '{file_name}' del cliente {client_id} está siendo procesado para autenticación."}
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
