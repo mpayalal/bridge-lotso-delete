@@ -2,6 +2,7 @@ import os
 import json
 from aio_pika import connect_robust, Message
 from fastapi import FastAPI, HTTPException, Form
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -9,6 +10,14 @@ rabbitmq_user = os.getenv("RABBITMQ_USER")
 rabbitmq_pass = os.getenv("RABBITMQ_PASSWORD")
 rabbitmq_host = os.getenv("RABBITMQ_HOST")
 rabbitmq_port = os.getenv("RABBITMQ_PORT")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 async def connect_to_rabbit():
     try:
