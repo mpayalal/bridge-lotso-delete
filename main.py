@@ -1,8 +1,12 @@
 import os
 import json
+import logging
+from models.User import User
+from db.db import engine, Base
 from aio_pika import connect_robust, Message
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from dependencies.auth import get_current_user
 
 app = FastAPI()
 
@@ -18,6 +22,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 async def connect_to_rabbit():
     try:
@@ -42,32 +53,44 @@ async def publish_to_rabbitmq(queue: str, message_body):
     except Exception as e:
         raise Exception(f"RabbitMQ publish error: {e}")
 
+@app.on_event("startup")
+async def startup_db_client():
+    try:
+        # Create tables if they don't exist
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    # Close any open connections or perform cleanup
+    logger.info("Shutting down application")
+
 @app.post("/v1/events/documents/deleteFile")
 async def delete_file_from_bucket(
-    client_id: str = Form(...),
-    client_email: str = Form(...),
+    user: User = Depends(get_current_user),
     file_name: str = Form(...)
 ):
     try:
         # Mensaje para RabbitMQ
         message = {
-            "client_email": client_email,
-            "file_name": f"{client_id}/{file_name}"
+            "client_email": user.email,
+            "file_name": f"{user.documentNumber}/{file_name}"
         }
 
         # Mandamos mensaje
         await publish_to_rabbitmq('delete_file', message)
 
-        return {"message": f"El archivo '{file_name}' del cliente {client_id} está siendo procesado para eliminación."}
+        return {"message": f"El archivo '{file_name}' del cliente {user.documentNumber} está siendo procesado para eliminación."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @app.post("/v1/events/documents/sendFile")
 async def send_document_to_email(
-    client_id: str = Form(...),
-    client_name: str = Form(...),
-    file_name: str = Form(...),
+    user: User = Depends(get_current_user),
+    file_name: str = Form(...), 
     to_email: str = Form(...)
 ):
     try:
@@ -75,8 +98,8 @@ async def send_document_to_email(
         message = {
             "action": "sendFile",
             "to_email": to_email,
-            "client_name": client_name,
-            "file_name": f"{client_id}/{file_name}"
+            "client_name": user.name,
+            "file_name": f"{user.documentNumber}/{file_name}"
         }
 
         # Mandamos mensaje
@@ -89,24 +112,23 @@ async def send_document_to_email(
 
 @app.put("/v1/events/documents/authenticateFile")
 async def authenticate_file(
-    client_id: str = Form(...),
+    user: User = Depends(get_current_user),
     url_document: str = Form(...),
     file_name: str = Form(...),
-    client_email: str = Form(...)
 ):
     try:
         # Mensaje para RabbitMQ
         message = {
-            "client_id": client_id,
+            "client_id": user.documentNumber,
             "url_document": url_document,
             "file_name": file_name,
-            "client_email": client_email
+            "client_email": user.email
         }
 
         # Mandamos mensaje
         await publish_to_rabbitmq('authenticate_file', message)
 
-        return {"message": f"El archivo '{file_name}' del cliente {client_id} está siendo procesado para autenticación."}
+        return {"message": f"El archivo '{file_name}' del cliente {user.documentNumber} está siendo procesado para autenticación."}
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
