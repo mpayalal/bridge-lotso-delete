@@ -1,7 +1,6 @@
 from sqlmodel import Field, SQLModel, Column, DateTime, func
 from datetime import datetime
 from typing import Optional
-import uuid
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
