@@ -21,18 +21,3 @@ class File(SQLModel, table=True):
 
     def __repr__(self):
         return f"File(id={self.id}, user_id={self.user_id}, file_name={self.file_name},  type={self.type}, created_at={self.created_at}, updated_at={self.updated_at})"
-    
-    @classmethod
-    def create_new(cls, user_id, file_name, file_type=None):
-        """Factory method to create a new file record with a UUID"""
-        return cls(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            file_name=file_name,
-            type=file_type
-        )
-    @classmethod
-    def get_all_files_by_user_id(cls, session: Session, user_id: str):
-        """Get all files belonging to a specific user"""
-        statement = select(cls).where(cls.user_id == user_id)
-        return session.exec(statement).all()

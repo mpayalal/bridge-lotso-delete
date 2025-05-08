@@ -2,7 +2,6 @@ import jwt
 from fastapi import Depends, Header, HTTPException
 from sqlmodel import Session, select
 from typing import Optional
-
 from db.db import get_session
 from models.User import User
 
