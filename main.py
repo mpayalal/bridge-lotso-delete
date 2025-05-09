@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from pydantic import BaseModel
 from aio_pika import connect_robust, Message
 from fastapi import FastAPI, HTTPException, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,6 +29,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Body reqs models
+class DeleteFileRequest(BaseModel):
+    file_name: str
+
+class SendFileRequest(BaseModel):
+    file_name: str
+    to_email: str
+
+class AuthenticateFile(BaseModel):
+    url_document: str
+    file_name: str
+
 async def connect_to_rabbit():
     try:
         connection = await connect_robust(
@@ -53,10 +66,12 @@ async def publish_to_rabbitmq(queue: str, message_body):
 
 @app.post("/v1/events/documents/deleteFile")
 async def delete_file_from_bucket(
-    user_id: str = Depends(get_current_user_id),
-    file_name: str = Form(...)
+    payload: DeleteFileRequest,
+    user_id: str = Depends(get_current_user_id)
 ):
     try:
+        file_name = payload.file_name
+
         # Mensaje para RabbitMQ
         message = {
             "user_id": user_id,
@@ -73,11 +88,13 @@ async def delete_file_from_bucket(
 
 @app.post("/v1/events/documents/sendFile")
 async def send_document_to_email(
-    user_id: str = Depends(get_current_user_id),
-    file_name: str = Form(...), 
-    to_email: str = Form(...)
+    payload: SendFileRequest,
+    user_id: str = Depends(get_current_user_id)
 ):
     try:
+        file_name = payload.file_name
+        to_email = payload.to_email
+
         # Mensaje para RabbitMQ
         message = {
             "action": "sendFile",
@@ -96,11 +113,13 @@ async def send_document_to_email(
 
 @app.put("/v1/events/documents/authenticateFile")
 async def authenticate_file(
-    user_id: str = Depends(get_current_user_id),
-    url_document: str = Form(...),
-    file_name: str = Form(...),
+    payload: AuthenticateFile,
+    user_id: str = Depends(get_current_user_id)
 ):
     try:
+        url_document = payload.url_document
+        file_name = payload.file_name
+
         # Mensaje para RabbitMQ
         message = {
             "user_id": user_id,
